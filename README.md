@@ -309,3 +309,5 @@ Output : <div><p><strong>Hello Umesh Kumar</strong></p></div>
          Returns the Name of person
          __main__
 ```
+#References:
+[A guide to Python decorators](http://thecodeship.com/patterns/guide-to-python-function-decorators/)
