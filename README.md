@@ -123,7 +123,7 @@ Output : <p>Hello this is kumar</p>
 ```
 We can see from above example that function takes another function as an argument, generates a new function, 
 augmenting the work of the original function, and returning the generated function so we can use it anywhere. 
-To have get_name itself be decorated by p_decorate, we just have to assign get_text to the result of p_decorate.
+To have get_name itself be decorated by p_decorate, we just have to assign get_name to the result of p_decorate.
 
 ```python
 get_name = p_decorate(get_name)
@@ -155,7 +155,7 @@ print(get_name("Kumar"))
 Output : <p>Hello this is kumar</p>
 ```
 
-Now let's consider we wanted to decorate our get_text function by 2 other functions 
+Now let's consider we wanted to decorate our get_name function by 2 other functions 
 to wrap a div and strong tag around the string output.
 
 #####Example :
@@ -222,7 +222,7 @@ print(my_person.get_fullname())
 Output : <p>Umesh Kumar</p>
 ```
 ###Passing arguments to Decorators :
-In the previous example we can notice how redundant the decorators in the example are. 
+In the previous example we can notice how redundant the decorators are. 
 3 decorators(div_decorate, p_decorate, strong_decorate) each with the same functionality 
 but wrapping the string with different tags. We can definitely do much better than that. 
 #####Example :
@@ -231,7 +231,6 @@ but wrapping the string with different tags. We can definitely do much better th
 
 def tags(tag_name):
     def tags_decorator(func):
-        @wraps(func)
         def func_wrapper(name):
             return "<{0}>{1}</{0}>".format(tag_name, func(name))
 
@@ -253,4 +252,60 @@ Output : <div><p><strong>Hello Umesh Kumar</strong></p></div>
 ```
 
 In above example we can see that we have reduced the three different functions with same functionality to single function 
-by just passing an argument to the decorator function. 
+by just passing an argument to the decorator function.
+
+###Debugging decorated function:
+Finally decorators are just wrapping our functions, in case of debugging that can be problematic since the wrapper function does not carry the name, module and docstring of the original function. Based on the example above if we do:
+
+```python
+print(get_name.__name__)
+print(get_name.__doc__)
+print(get_name.__module__)
+```
+We can get output as :
+```python
+func_wrapper
+None
+__main__
+```
+The output was expected to be get_name yet, the attributes __name__, __doc__, and __module__ of get_name got overridden by those of the wrapper(func_wrapper. Obviously we can re-set them within func_wrapper but Python provides a much nicer way).
+
+####Functools to the rescue
+Python includes the functools module which contains functools.wraps. Wraps is a decorator for updating the attributes of the wrapping function(func_wrapper) to those of the original function(get_name). This is as simple as decorating func_wrapper by @wraps(func).
+#####Example
+
+```python
+from functools import wraps
+
+
+def tags(tag_name):
+    def tags_decorator(func):
+        @wraps(func)
+        def func_wrapper(name):
+            return "<{0}>{1}</{0}>".format(tag_name, func(name))
+
+        return func_wrapper
+
+    return tags_decorator
+
+
+@tags("div")
+@tags("p")
+@tags("strong")
+def get_name(name):
+    """Returns the Name of person"""
+    return "Hello " + name
+
+
+print(get_name("Umesh Kumar"))
+
+print(get_name.__name__)
+print(get_name.__doc__)
+print(get_name.__module__)
+```
+```python
+Output : <div><p><strong>Hello Umesh Kumar</strong></p></div>
+         get_name
+         Returns the Name of person
+         __main__
+```
